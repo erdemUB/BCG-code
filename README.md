@@ -13,7 +13,7 @@ Contains source code to reproduce the results of GNN methods (GCN, GIN, and Grap
 ### datasets: 
 It should contain the dataset. Please download the FCG dataset and APk features files from this link: https://jakir-sust.github.io/BCG-dataset/. 
 
-### Results:
+### results:
 Executing the code will create a new file contaning the detail results inside results folder for the given experiment and dataset type.
 
 <!-- ## Requirements -->
