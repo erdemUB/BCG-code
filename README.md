@@ -3,13 +3,18 @@ Code repository of the paper titled "Better Call Graphs: A New Dataset of Functi
 
 
 ## Directory structure ##
-### **LDP**: contains source code to reproduce the results of LDP and APK features 
+### **LDP**: 
+Contains source code to reproduce the results of LDP and APK features 
 * **main.py**: program to produce the LDP and APK feature results.
 
-### **GNN**: contains source code to reproduce the results of GNN methods (GCN, GIN, and GraphSAGE). Note that, we utilize the code from Malnet paper and adapted to our experimental setup.
+### **GNN**: 
+Contains source code to reproduce the results of GNN methods (GCN, GIN, and GraphSAGE). Note that, we utilize the code from Malnet paper and adapted to our experimental setup.
 
-### datasets: It should contain the dataset. Please download the FCG dataset and APk features files from this link: https://jakir-sust.github.io/BCG-dataset/. 
+### datasets: 
+It should contain the dataset. Please download the FCG dataset and APk features files from this link: https://jakir-sust.github.io/BCG-dataset/. 
 
+### Results:
+Executing the code will create a new file contaning the detail results inside results folder for the given experiment and dataset type.
 
 <!-- ## Requirements -->
 <!-- ```bash -->
@@ -39,8 +44,7 @@ Code repository of the paper titled "Better Call Graphs: A New Dataset of Functi
   * **data_type**: defines the data type. Options are: 1) BCG, 2) tiny, 3) Maldroid
 
 
-### Results
- * Executing the code will create a new file contaning the detail results inside results folder for the given experiment and dataset type.
+
 
 
 
