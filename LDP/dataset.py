@@ -18,6 +18,7 @@ class MalNetTiny(InMemoryDataset):
 
     def __init__(
             self,
+            args: None,
             root: str,
             data_frame: pd.DataFrame,
             split=None,
@@ -26,9 +27,11 @@ class MalNetTiny(InMemoryDataset):
             pre_filter=None,
     ):
         self.data_frame = data_frame
+        self.args = args
         self.y_map = {}
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
+
 
     @property
     def raw_file_names(self) -> List[str]:
@@ -40,13 +43,12 @@ class MalNetTiny(InMemoryDataset):
 
     def process(self):
         data_list = []
-        #         base_path = '/panasas/scratch/grp-erdem/malnet-graphs/malnetTiny/'
-        base_path = '/projects/academic/erdem/gurvinder/scratch/Malnet_Tiny/'
+
+        # Set the hashed graph path as base path to read each graph
         y_map = {'adware': 0, 'benign': 1, 'downloader': 2, 'trojan': 3, 'addisplay': 4}
 
-        #         for filename in filenames:
         for index, row in self.data_frame.iterrows():
-            path = osp.join(base_path, 'graph_files1', f"{row['sha256']}.edgelist")
+            path = osp.join(self.args.graph_path, f"{row['sha256']}.edgelist")
             malware_type = row['final_label']
             y = y_map.setdefault(malware_type, len(y_map))
             sha256 = row['sha256']
@@ -78,11 +80,13 @@ class MaldroidDataset(InMemoryDataset):
             root: str,
             data_frame: pd.DataFrame,
             split=None,
+            args=None,
             transform=None,
             pre_transform=None,
             pre_filter=None,
     ):
         self.data_frame = data_frame
+        self.args = args
         self.y_map = {}
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[0])
@@ -158,15 +162,15 @@ class BCG(InMemoryDataset):
 
     def process(self):
         data_list = []
-        base_path = '/panasas/scratch/grp-erdem/malnet-graphs/virusShare'
-        base_path = '/panasas/scratch/grp-erdem/malnet-graphs/BCG/'
+        # Set the hashed graph path as base path to read each graph
+        base_path = '/vscratch/grp-erdem/malware_classification/BCG/final_dataset/zipped_data/BCG_hashed_FCGs/'
+
         y_map = {'trojan': 0, 'adware': 1, 'risktool': 2, 'adware++risktool': 3, 'smsreg': 4, 'riskware': 5, 'adware++trojan': 6,
                  'adware++riskware': 7, 'dropper++trojan': 8, 'spy++trojan': 9, 'rog': 10, 'risktool++spr': 11, 'risktool++trojan': 12,
                  'banker++trojan': 13, 'addisplay': 14, 'riskware++smsreg': 15, 'riskware++trojan': 16, 'fakeapp': 17,
                  'downloader++trojan': 18, 'risktool++riskware': 19, 'smsreg++trojan': 20, 'clicker++trojan': 21, 'fakeapp++trojan': 22,
                  'spy': 23, 'spr++trojan': 24, 'smsreg++spr': 25, 'backdoor': 26, 'backdoor++trojan': 27, 'benign': 28}
 
-        #         for filename in filenames:
         print(len(y_map), y_map)
         if self.args.group == 'family':
             y_map.clear()
@@ -177,7 +181,8 @@ class BCG(InMemoryDataset):
         print(len(y_map), y_map)
 
         for index, row in self.data_frame.iterrows():
-            path = osp.join(base_path, 'graph_files1', f"{row['sha256']}.edgelist")
+            # path = osp.join(base_path, 'graph_files1', f"{row['sha256']}.edgelist")
+            path = osp.join(base_path, f"{row['sha256']}.edgelist")
             malware_type = row['final_label']
             if self.args.group == 'family':
                 malware_type = row['family_label']

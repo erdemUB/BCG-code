@@ -53,6 +53,7 @@ def parameter_parser():
     parser.add_argument('--exp_type', default="LDP", type=str, help='Type of experiments: LDP, APK, APK_only, LDP+APK')
     parser.add_argument('--seed', default=1, type=int, help='Seed values')
     parser.add_argument('--group', default="type", type=str, help='Classification group: type or family')
+    parser.add_argument('--graph_path', default="/projects/academic/erdem/gurvinder/scratch/Malnet_Tiny/graph_files1/", type=str, help='Path of APK graph files')
 
     return parser.parse_args()
 
@@ -219,13 +220,13 @@ def perform_classifier(train_embed, train_label, val_embed, val_label, test_embe
     return score, macro_f1, precision, recall
 
 def create_Maldroid_dataset(transform, args, data=None):
-    root_data_path = "/vscratch/grp-erdem/malware_classification/Maldroid/LDP_APK/"
+    pr_path = "processed_data/Maldroid/"
     if args.rem_dup:
-        root_data_path = root_data_path + 'unique/'
-        emb_path = "dataset/unique/Maldroid_train_test_val_dataset.pickle"
+        pr_path = pr_path + 'unique/'
+        emb_path = "temp_data/unique/Maldroid_train_test_val_dataset.pickle"
     else:
-        root_data_path = root_data_path + 'duplicate/'
-        emb_path = "dataset/duplicate/Maldroid_train_test_val_dataset.pickle"
+        pr_path = pr_path + 'duplicate/'
+        emb_path = "temp_data/duplicate/Maldroid_train_test_val_dataset.pickle"
 
     if os.path.isfile(emb_path):
         with open(emb_path, 'rb') as handle:
@@ -241,9 +242,9 @@ def create_Maldroid_dataset(transform, args, data=None):
     # train_dataset = MaldroidDataset(root='/projects/academic/erdem/gurvinder/scratch/maldroid/', data_frame=data[data['split'] == 'train'], transform=transform, split='train')
     # test_dataset = MaldroidDataset(root='/projects/academic/erdem/gurvinder/scratch/maldroid/', data_frame=data[data['split'] == 'test'], transform=transform, split='test')
 
-    train_dataset = MaldroidDataset(root=root_data_path, data_frame=df[df['sha256'].isin(train_feat.sha256)], transform=transform, split='train')
-    test_dataset = MaldroidDataset(root=root_data_path, data_frame=df[df['sha256'].isin(test_feat.sha256)], transform=transform, split='test')
-    val_dataset = MaldroidDataset(root=root_data_path, data_frame=df[df['sha256'].isin(val_feat.sha256)], transform=transform, split='val')
+    train_dataset = MaldroidDataset(args=args, root=pr_path, data_frame=df[df['sha256'].isin(train_feat.sha256)], transform=transform, split='train')
+    test_dataset = MaldroidDataset(args=args, root=pr_path, data_frame=df[df['sha256'].isin(test_feat.sha256)], transform=transform, split='test')
+    val_dataset = MaldroidDataset(args=args, root=pr_path, data_frame=df[df['sha256'].isin(val_feat.sha256)], transform=transform, split='val')
 
     with open(emb_path, 'wb') as handle:
         pickle.dump([train_dataset, test_dataset, val_dataset], handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -251,13 +252,13 @@ def create_Maldroid_dataset(transform, args, data=None):
     return train_dataset, test_dataset, val_dataset
 
 def create_MalNetTiny_dataset(transform, args, data=None):
-    root_data_path = "/vscratch/grp-erdem/malware_classification/tiny/LDP_APK/"
+    pr_path = "processed_data/Malnet_Tiny/"
     if args.rem_dup:
-        root_data_path = root_data_path + 'unique/'
-        emb_path = "dataset/unique/tiny_train_test_val_dataset_1.pickle"
+        pr_path = pr_path + 'unique/'
+        emb_path = "temp_data/unique/tiny_train_test_val_dataset.pickle"
     else:
-        root_data_path = root_data_path + 'duplicate/'
-        emb_path = "dataset/duplicate/tiny_train_test_val_dataset_1.pickle"
+        pr_path = pr_path + 'duplicate/'
+        emb_path = "temp_data/duplicate/tiny_train_test_val_dataset.pickle"
 
     if os.path.isfile(emb_path):
         with open(emb_path, 'rb') as handle:
@@ -272,35 +273,26 @@ def create_MalNetTiny_dataset(transform, args, data=None):
     print("dataset shape   ", df.shape)
 
     df = apply_lambda(df, data_type=args.data_type, rem_dup=args.rem_dup)
-    # label_values = df['family_label'].unique()
     print("dataset shape   ", df.shape)
 
-    train_dataset = MalNetTiny(root=root_data_path, data_frame=df[df['sha256'].isin(train_feat.sha256)], transform=transform, split='train')
-    test_dataset = MalNetTiny(root=root_data_path, data_frame=df[df['sha256'].isin(test_feat.sha256)], transform=transform, split='test')
-    val_dataset = MalNetTiny(root=root_data_path, data_frame=df[df['sha256'].isin(val_feat.sha256)], transform=transform, split='val')
-
-    # train_dataset = MalNetTiny(root='/projects/academic/erdem/gurvinder/scratch/Malnet_Tiny/', data_frame=df[df['split'] == 'train'], transform=transform,
-    #                            split='train')
-    # test_dataset = MalNetTiny(root='/projects/academic/erdem/gurvinder/scratch/Malnet_Tiny/', data_frame=df[df['split'] == 'test'], transform=transform,
-    #                           split='test')
-    # val_dataset = MalNetTiny(root='/projects/academic/erdem/gurvinder/scratch/Malnet_Tiny/', data_frame=df[df['split'] == 'val'], transform=transform,
-    #                          split='val')
-
+    train_dataset = MalNetTiny(args=args, root=pr_path, data_frame=df[df['sha256'].isin(train_feat.sha256)], transform=transform, split='train')
+    test_dataset = MalNetTiny(args=args,root=pr_path, data_frame=df[df['sha256'].isin(test_feat.sha256)], transform=transform, split='test')
+    val_dataset = MalNetTiny(args=args, root=pr_path, data_frame=df[df['sha256'].isin(val_feat.sha256)], transform=transform, split='val')
 
     with open(emb_path, 'wb') as handle:
         pickle.dump([train_dataset, test_dataset, val_dataset], handle, protocol=pickle.HIGHEST_PROTOCOL)
     return train_dataset, test_dataset, val_dataset
 
 def create_BCG_dataset(transform, args, data=None):
-    root_data_path = "processed_data/BCG/"
+    pr_path = "processed_data/BCG/"
     if args.rem_dup:
-        root_data_path = root_data_path + 'unique/'
+        pr_path = pr_path + 'unique/'
         emb_path = "temp_data/unique/BCG_train_test_val_dataset.pickle"
         if args.group == 'family':
-            root_data_path = root_data_path + 'family/'
+            pr_path = pr_path + 'family/'
             emb_path = "temp_data/unique/BCG_train_test_val_dataset_family.pickle"
     else:
-        root_data_path = root_data_path + 'duplicate/'
+        pr_path = pr_path + 'duplicate/'
         emb_path = "temp_data/duplicate/BCG_train_test_val_dataset.pickle"
 
     if os.path.isfile(emb_path):
@@ -318,9 +310,9 @@ def create_BCG_dataset(transform, args, data=None):
     label_values = df['family_label'].unique()
     print("dataset shape   ", df.shape)
 
-    train_dataset = BCG(args, label_values, root=root_data_path, data_frame=df[df['sha256'].isin(train_feat.sha256)], transform=transform, split='train')
-    test_dataset = BCG(args, label_values, root=root_data_path, data_frame=df[df['sha256'].isin(test_feat.sha256)], transform=transform, split='test')
-    val_dataset = BCG(args,label_values,  root=root_data_path, data_frame=df[df['sha256'].isin(val_feat.sha256)], transform=transform, split='val')
+    train_dataset = BCG(args, label_values, root=pr_path, data_frame=df[df['sha256'].isin(train_feat.sha256)], transform=transform, split='train')
+    test_dataset = BCG(args, label_values, root=pr_path, data_frame=df[df['sha256'].isin(test_feat.sha256)], transform=transform, split='test')
+    val_dataset = BCG(args,label_values,  root=pr_path, data_frame=df[df['sha256'].isin(val_feat.sha256)], transform=transform, split='val')
 
     # train_dataset = BCG(root='/panasas/scratch/grp-erdem/malnet-graphs/BCG/', data_frame=data[data['split'] == 'train'], transform=transform, split='train')
     # test_dataset = BCG(root='/panasas/scratch/grp-erdem/malnet-graphs/BCG/', data_frame=data[data['split'] == 'test'], transform=transform, split='test')
@@ -335,7 +327,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     transform = T.Compose([T.ToDevice(device), LocalDegreeProfile()])
 
-    # val_dataset = MalNetTiny(root=root_data_path, transform=transform, split='val')
+    # val_dataset = MalNetTiny(root=pr_path, transform=transform, split='val')
     args = parameter_parser()
     data_type = args.data_type
 
