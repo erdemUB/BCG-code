@@ -170,19 +170,13 @@ class BCG(InMemoryDataset):
         print(len(y_map), y_map)
         if self.args.group == 'family':
             y_map.clear()
-            # y_map = self.label_values
             print("Inside family   ")
-            # self.data_frame['family_label'] = self.data_frame['family_label'].replace('', 'no_family')
-            # self.data_frame['family_label'] = self.data_frame['family_label'].fillna('no_family')
-            # Y_values = self.data_frame['family_label'].unique()
             for i, value in enumerate(self.label_values):
                 y_map[value] = i
 
         print(len(y_map), y_map)
 
         for index, row in self.data_frame.iterrows():
-            #             print(index, row)
-            #             path = osp.join(base_path, row['folder'] ,'graph_files1' , f"{row['sha256']}.edgelist")
             path = osp.join(base_path, 'graph_files1', f"{row['sha256']}.edgelist")
             malware_type = row['final_label']
             if self.args.group == 'family':

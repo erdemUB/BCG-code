@@ -104,39 +104,6 @@ def apply_lambda(df, data_type="BCG", rem_dup=True):
         df['family_label'] = df['family_label'].fillna('no_family')
     return df
 
-    if data_type=="BCG":
-        label1 = {'trojan': 0, 'adware': 1, 'risktool': 2, 'adware++risktool': 3, 'smsreg': 4, 'riskware': 5, 'adware++trojan': 6,
-                  'adware++riskware': 7, 'dropper++trojan': 8, 'spy++trojan': 9, 'rog': 10, 'risktool++spr': 11, 'risktool++trojan': 12,
-                  'banker++trojan': 13, 'addisplay': 14, 'riskware++smsreg': 15, 'riskware++trojan': 16, 'fakeapp': 17,
-                  'downloader++trojan': 18, 'risktool++riskware': 19, 'smsreg++trojan': 20, 'clicker++trojan': 21, 'fakeapp++trojan': 22,
-                  'spy': 23, 'spr++trojan': 24, 'smsreg++spr': 25, 'backdoor': 26, 'backdoor++trojan': 27, 'benign': 28}
-    else:
-        label1 = {'Benign': 0, 'Riskware': 1, 'Banking': 2, 'Adware': 3}
-    label_dict = {v: k for k, v in label1.items()}
-    # label_dict
-    class_indexes = list(label_dict.keys())
-    class_labels = list(label_dict.values())
-
-    # print(class_indexes, class_labels)
-    cols_to_check = ['final_label', 'edges', 'nodes', 'node_degree', 'indegree', 'large_conn_dic', 'large_weak_conn_dic']
-
-    test_data = df.groupby('final_label', group_keys=False).apply(lambda x: x.sample(frac=0.2, random_state=1))
-    train_data = df[~df['sha256'].isin(test_data['sha256'])]
-
-    test_data['split'] = 'test'
-    train_data['split'] = 'train'
-
-    df = pd.concat([train_data, test_data], axis=0)
-
-    # cols_to_check = ['final_label', 'edges', 'nodes', 'node_degree', 'indegree', 'closeness', 'num_cycle',
-    #                  'large_weak_conn_ratio_dic', 'second_large_weak_conn_ratio_dic', 'power_alpha', 'app_main_act']
-    if rem_dup==True:
-        data = df[~df.duplicated(subset=cols_to_check, keep='first')]
-    else:
-        data = df
-    print(data_type, rem_dup, data.shape, df.shape)
-    return data
-
 
 # import numpy as np
 def load_apk_feature(train_dataset, test_dataset, val_dataset, data_type='tiny', exp_type="LDP+APK"):
@@ -325,28 +292,23 @@ def create_MalNetTiny_dataset(transform, args, data=None):
     return train_dataset, test_dataset, val_dataset
 
 def create_BCG_dataset(transform, args, data=None):
-    root_data_path = "/vscratch/grp-erdem/malware_classification/BCG/LDP_APK/"
+    root_data_path = "processed_data/BCG/"
     if args.rem_dup:
         root_data_path = root_data_path + 'unique/'
-        emb_path = "dataset/unique/BCG_train_test_val_dataset.pickle"
+        emb_path = "temp_data/unique/BCG_train_test_val_dataset.pickle"
         if args.group == 'family':
             root_data_path = root_data_path + 'family/'
-            emb_path = "dataset/unique/BCG_train_test_val_dataset_family.pickle"
+            emb_path = "temp_data/unique/BCG_train_test_val_dataset_family.pickle"
     else:
         root_data_path = root_data_path + 'duplicate/'
-        emb_path = "dataset/duplicate/BCG_train_test_val_dataset.pickle"
+        emb_path = "temp_data/duplicate/BCG_train_test_val_dataset.pickle"
 
     if os.path.isfile(emb_path):
         with open(emb_path, 'rb') as handle:
             train_dataset, test_dataset, val_dataset = pickle.load(handle)
         return train_dataset, test_dataset, val_dataset
 
-    bad_list = ['02c8d53251e7719d3a78f10756e81a174aa34baa3c3951ab4a1f22c881f2ab74', '130544ebbca82f20a90ec80cec2eaba8fe7a1b71bd4db0b3ad53a711bac48d64', '476dbad3ef97d16f034d9a4d2ded4f1a1ba102616e97bed42b30d3857a142493', '40e5341ac9646f753f3e564b75187df3fd7936f89b1ef8a568e781ba3550054a', '109cec04e0c659b522f3bb9b0a0904129134730ed7d3a612a814acc0ee6c8515', '097fa0114c259f1b05d1da268eee04fcfe0bf3f2a884bad123d1f3b21a897cca', '4a7a347f4a18d0f1f102892de13a10060a3ab201490ea755da2e1ea1e012169f', '802259f387b2b38e2c96312b9a221f1dc6777290811c93c528e4f109b176886e', 'aeb6ccb42b87c4ff933fbc05a588d43c4d6dd28120bcd5ffd6626799ff48bc86', 'edf19104431848cbfaaea8f6239c61148c82adb156b4311e9e7912c73b43fedf', 'bac2a9ea6752d6f6049a49a2ebe52ee8fffed7939fc896c4d9454185bf9feafb']
-    df = pd.read_json('/user/mh267/malnet/features/final_dataset1.json', orient='records', lines=True)
-    # df = df[df.sha256 isin bad_list]
-    print(df.shape)
-    df.drop(df.loc[df['sha256'].isin(bad_list)].index, inplace=True)
-    print("after removing bad  ", df.shape)
+    df = pd.read_json('apk_feature/final_dataset.json', orient='records', lines=True)
 
     cols_to_check = ['final_label', 'edges', 'nodes', 'node_degree', 'indegree', 'large_conn_dic', 'large_weak_conn_dic']
     if args.rem_dup == 1:
@@ -390,11 +352,11 @@ if __name__ == '__main__':
         test_feat_file = "test_data_apk_feature.csv"
 
     if args.data_type == "tiny":
-        root_dir = "/projects/academic/erdem/gurvinder/scratch/Malnet_Tiny/output/"
+        root_dir = "apk_feature/Malnet_Tiny/"
     elif args.data_type == "Maldroid":
-        root_dir = "/projects/academic/erdem/jakir/easybuild/malware_classification/data/maldroid/apk_feature/"
+        root_dir = "apk_feature/maldroid/"
     elif args.data_type == "BCG":
-        root_dir = "/projects/academic/erdem/jakir/easybuild/malware_classification/data/BCG/apk_feature/"
+        root_dir = "apk_feature/BCG/"
 
     train_feat = pd.read_csv(root_dir + train_feat_file)
     val_feat = pd.read_csv(root_dir + val_feat_file)
