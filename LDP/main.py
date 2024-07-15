@@ -223,17 +223,17 @@ def create_Maldroid_dataset(transform, args, data=None):
     pr_path = "processed_data/Maldroid/"
     if args.rem_dup:
         pr_path = pr_path + 'unique/'
-        emb_path = "temp_data/unique/Maldroid_train_test_val_dataset.pickle"
+        emb_path = "temp_data/unique_Maldroid_train_test_val_dataset.pickle"
     else:
         pr_path = pr_path + 'duplicate/'
-        emb_path = "temp_data/duplicate/Maldroid_train_test_val_dataset.pickle"
+        emb_path = "temp_data/duplicate_Maldroid_train_test_val_dataset.pickle"
 
     if os.path.isfile(emb_path):
         with open(emb_path, 'rb') as handle:
             train_dataset, test_dataset, val_dataset = pickle.load(handle)
         return train_dataset, test_dataset, val_dataset
 
-    df = pd.read_json('/projects/academic/erdem/gurvinder/scratch/maldroid/output/malroid_final.json', orient='records', lines=True)
+    df = pd.read_json('apk_feature/Maldroid_original_APK_info.json', orient='records', lines=True)
     df = apply_lambda(df, data_type=args.data_type, rem_dup=args.rem_dup)
     cols_to_check = ['final_label', 'edges', 'nodes', 'node_degree', 'indegree', 'large_conn_dic', 'large_weak_conn_dic']
     if args.rem_dup == 1:
@@ -255,10 +255,10 @@ def create_MalNetTiny_dataset(transform, args, data=None):
     pr_path = "processed_data/Malnet_Tiny/"
     if args.rem_dup:
         pr_path = pr_path + 'unique/'
-        emb_path = "temp_data/unique/tiny_train_test_val_dataset.pickle"
+        emb_path = "temp_data/unique_tiny_train_test_val_dataset.pickle"
     else:
         pr_path = pr_path + 'duplicate/'
-        emb_path = "temp_data/duplicate/tiny_train_test_val_dataset.pickle"
+        emb_path = "temp_data/duplicate_tiny_train_test_val_dataset.pickle"
 
     if os.path.isfile(emb_path):
         with open(emb_path, 'rb') as handle:
@@ -266,7 +266,7 @@ def create_MalNetTiny_dataset(transform, args, data=None):
         return train_dataset, test_dataset, val_dataset
 
 
-    df = pd.read_json('/projects/academic/erdem/gurvinder/scratch/Malnet_Tiny/output/malnet_final1.json', orient='records', lines=True)
+    df = pd.read_json('apk_feature/tiny_original_APK_info.json', orient='records', lines=True)
     cols_to_check = ['final_label', 'edges', 'nodes', 'node_degree', 'indegree', 'large_conn_dic', 'large_weak_conn_dic']
     if args.rem_dup == 1:
         df = df[~df.duplicated(subset=cols_to_check, keep='first')]
@@ -287,20 +287,20 @@ def create_BCG_dataset(transform, args, data=None):
     pr_path = "processed_data/BCG/"
     if args.rem_dup:
         pr_path = pr_path + 'unique/'
-        emb_path = "temp_data/unique/BCG_train_test_val_dataset.pickle"
+        emb_path = "temp_data/unique_BCG_train_test_val_dataset.pickle"
         if args.group == 'family':
             pr_path = pr_path + 'family/'
-            emb_path = "temp_data/unique/BCG_train_test_val_dataset_family.pickle"
+            emb_path = "temp_data/unique_BCG_train_test_val_dataset_family.pickle"
     else:
         pr_path = pr_path + 'duplicate/'
-        emb_path = "temp_data/duplicate/BCG_train_test_val_dataset.pickle"
+        emb_path = "temp_data/duplicate_BCG_train_test_val_dataset.pickle"
 
     if os.path.isfile(emb_path):
         with open(emb_path, 'rb') as handle:
             train_dataset, test_dataset, val_dataset = pickle.load(handle)
         return train_dataset, test_dataset, val_dataset
 
-    df = pd.read_json('apk_feature/final_dataset.json', orient='records', lines=True)
+    df = pd.read_json('apk_feature/BCG_original_APK_info.json', orient='records', lines=True)
 
     cols_to_check = ['final_label', 'edges', 'nodes', 'node_degree', 'indegree', 'large_conn_dic', 'large_weak_conn_dic']
     if args.rem_dup == 1:

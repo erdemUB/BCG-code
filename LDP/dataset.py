@@ -101,13 +101,9 @@ class MaldroidDataset(InMemoryDataset):
 
     def process(self):
         data_list = []
-        #         base_path = '/panasas/scratch/grp-erdem/malnet-graphs/maldroid/'
-        base_path = '/projects/academic/erdem/gurvinder/scratch/maldroid/'
         y_map = {'Benign': 0, 'Riskware': 1, 'Banking': 2, 'Adware': 3}
-
-        #         for filename in filenames:
         for index, row in self.data_frame.iterrows():
-            path = osp.join(base_path, 'graph_files1', f"{row['sha256']}.edgelist")
+            path = osp.join(self.args.graph_path, f"{row['sha256']}.edgelist")
             malware_type = row['final_label']
             y = y_map.setdefault(malware_type, len(y_map))
             sha256 = row['sha256']
@@ -163,8 +159,6 @@ class BCG(InMemoryDataset):
     def process(self):
         data_list = []
         # Set the hashed graph path as base path to read each graph
-        base_path = '/vscratch/grp-erdem/malware_classification/BCG/final_dataset/zipped_data/BCG_hashed_FCGs/'
-
         y_map = {'trojan': 0, 'adware': 1, 'risktool': 2, 'adware++risktool': 3, 'smsreg': 4, 'riskware': 5, 'adware++trojan': 6,
                  'adware++riskware': 7, 'dropper++trojan': 8, 'spy++trojan': 9, 'rog': 10, 'risktool++spr': 11, 'risktool++trojan': 12,
                  'banker++trojan': 13, 'addisplay': 14, 'riskware++smsreg': 15, 'riskware++trojan': 16, 'fakeapp': 17,
@@ -182,7 +176,7 @@ class BCG(InMemoryDataset):
 
         for index, row in self.data_frame.iterrows():
             # path = osp.join(base_path, 'graph_files1', f"{row['sha256']}.edgelist")
-            path = osp.join(base_path, f"{row['sha256']}.edgelist")
+            path = osp.join(self.args.graph_path, f"{row['sha256']}.edgelist")
             malware_type = row['final_label']
             if self.args.group == 'family':
                 malware_type = row['family_label']
