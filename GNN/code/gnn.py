@@ -135,25 +135,27 @@ def run_experiment(args_og):
     args = copy.deepcopy(args_og)
     seed_everything(args['seed'])
 
+    graph_dir ='../../datasets'
+
     if args['model'] != 'sgc': args['K'] = 0
     if args['data_type'] == 'tiny':
         if args['rem_dup']:
-            args['data_dir'] = '/vscratch/grp-erdem/malware_classification/tiny/tiny_graphs_unique/'
-            processed_dir = "/vscratch/grp-erdem/malware_classification/tiny/tiny_processed_unique/"
+            args['data_dir'] = graph_dir + '/tiny/tiny_graphs_unique/'
+            processed_dir =  graph_dir + "/tiny/tiny_processed_unique/"
         else:
-            args['data_dir'] = '/projects/academic/erdem/gurvinder/data/tiny/malnet-graphs-tiny/'
-            processed_dir = "/vscratch/grp-erdem/malware_classification/tiny/tiny_processed/"
+            args['data_dir'] = graph_dir + '/tiny/malnet-graphs-tiny/'
+            processed_dir = graph_dir + "/tiny/tiny_processed/"
 
     elif args['data_type'] == 'BCG':
-        args['data_dir'] = '/vscratch/grp-erdem/malware_classification/BCG/BCG_graphs/'
-        processed_dir = "/vscratch/grp-erdem/malware_classification/BCG/BCG_processed/"
+        args['data_dir'] = graph_dir + '//BCG/BCG_graphs/'
+        processed_dir = graph_dir + "/BCG/BCG_processed/"
     elif args['data_type'] == 'Maldroid':
         if args['rem_dup']:
-            args['data_dir'] = '/vscratch/grp-erdem/malware_classification/Maldroid/Maldroid_graphs_unique/'
-            processed_dir = "/vscratch/grp-erdem/malware_classification/Maldroid/Maldroid_processed_unique/"
+            args['data_dir'] = graph_dir + '/Maldroid/Maldroid_graphs_unique/'
+            processed_dir = graph_dir + "/Maldroid/Maldroid_processed_unique/"
         else:
-            args['data_dir'] = '/vscratch/grp-erdem/malware_classification/Maldroid/Maldroid_graphs/'
-            processed_dir = "/vscratch/grp-erdem/malware_classification/Maldroid/Maldroid_processed/"
+            args['data_dir'] = graph_dir + '/Maldroid/Maldroid_graphs/'
+            processed_dir = graph_dir + "/Maldroid/Maldroid_processed/"
 
     train_dir = processed_dir + "train/"
     val_dir = processed_dir + "val/"

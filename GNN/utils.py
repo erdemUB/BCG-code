@@ -9,7 +9,7 @@ def get_split_info(args):
     # data_dir = args['malnet_tiny_dir'] if args['malnet_tiny'] else args['malnet_dir']
 
     data_dir = args['data_dir']
-    root_dir = '/projects/academic/erdem/jakir/easybuild/malware_classification/code/malnet-graph/split_info/'
+    root_dir = 'split_info/'
     split_dir = root_dir + args['data_type'] + "/" + args['group']
     if args['rem_dup']:
         split_dir = root_dir + args['data_type'] + "/" + args['group'] + '_unique'

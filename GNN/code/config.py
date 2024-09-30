@@ -33,5 +33,5 @@ args = {
     'train_ratio': 1.0,  # corresponds to 'split_info' folder; controls percentage of training data
     'malnet_tiny': False,  # True = use MalNet-Tiny; False = use Malnet
     'malnet_dir': '/raid/sfreitas3/malnet-graphs/',  # ** USER SPECIFIED DIRECTORY TO MALNET DATA **
-    'malnet_tiny_dir': '/projects/academic/erdem/gurvinder/data/tiny/malnet-graphs-tiny/'  # ** USER SPECIFIED DIRECTORY TO MALNET-TINY DATA **
+    'malnet_tiny_dir': '../datasets/malnet-graphs-tiny/'  # ** USER SPECIFIED DIRECTORY TO MALNET-TINY DATA **
 }
