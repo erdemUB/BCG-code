@@ -53,7 +53,7 @@ def parameter_parser():
     parser.add_argument('--exp_type', default="LDP", type=str, help='Type of experiments: LDP, APK, APK_only, LDP+APK')
     parser.add_argument('--seed', default=1, type=int, help='Seed values')
     parser.add_argument('--group', default="type", type=str, help='Classification group: type or family')
-    parser.add_argument('--graph_path', default="/projects/academic/erdem/gurvinder/scratch/Malnet_Tiny/graph_files1/", type=str, help='Path of APK graph files')
+    parser.add_argument('--graph_path', default="../dataset/graph_files1/", type=str, help='Path of APK graph files')
 
     return parser.parse_args()
 
@@ -239,8 +239,6 @@ def create_Maldroid_dataset(transform, args, data=None):
     if args.rem_dup == 1:
         df = df[~df.duplicated(subset=cols_to_check, keep='first')]
     print("dataset shape   ", df.shape)
-    # train_dataset = MaldroidDataset(root='/projects/academic/erdem/gurvinder/scratch/maldroid/', data_frame=data[data['split'] == 'train'], transform=transform, split='train')
-    # test_dataset = MaldroidDataset(root='/projects/academic/erdem/gurvinder/scratch/maldroid/', data_frame=data[data['split'] == 'test'], transform=transform, split='test')
 
     train_dataset = MaldroidDataset(args=args, root=pr_path, data_frame=df[df['sha256'].isin(train_feat.sha256)], transform=transform, split='train')
     test_dataset = MaldroidDataset(args=args, root=pr_path, data_frame=df[df['sha256'].isin(test_feat.sha256)], transform=transform, split='test')
@@ -314,8 +312,6 @@ def create_BCG_dataset(transform, args, data=None):
     test_dataset = BCG(args, label_values, root=pr_path, data_frame=df[df['sha256'].isin(test_feat.sha256)], transform=transform, split='test')
     val_dataset = BCG(args,label_values,  root=pr_path, data_frame=df[df['sha256'].isin(val_feat.sha256)], transform=transform, split='val')
 
-    # train_dataset = BCG(root='/panasas/scratch/grp-erdem/malnet-graphs/BCG/', data_frame=data[data['split'] == 'train'], transform=transform, split='train')
-    # test_dataset = BCG(root='/panasas/scratch/grp-erdem/malnet-graphs/BCG/', data_frame=data[data['split'] == 'test'], transform=transform, split='test')
 
     with open(emb_path, 'wb') as handle:
         pickle.dump([train_dataset, test_dataset, val_dataset], handle, protocol=pickle.HIGHEST_PROTOCOL)
