@@ -9,7 +9,7 @@ def get_split_info(args):
     # data_dir = args['malnet_tiny_dir'] if args['malnet_tiny'] else args['malnet_dir']
 
     data_dir = args['data_dir']
-    root_dir = 'split_info/'
+    root_dir = '../split_info/'
     split_dir = root_dir + args['data_type'] + "/" + args['group']
     if args['rem_dup']:
         split_dir = root_dir + args['data_type'] + "/" + args['group'] + '_unique'
@@ -41,7 +41,7 @@ def get_split_info(args):
     files_val = [data_dir + file.strip() + '.edgelist' for file in lines_val]
     files_test = [data_dir + file.strip() + '.edgelist' for file in lines_test]
 
-    # print(files_train[:2])
+    print("Updated data dir", files_train[:2])
 
     print("Group name   ", args['group'])
 

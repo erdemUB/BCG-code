@@ -12,6 +12,8 @@ from sklearn.metrics import confusion_matrix, f1_score, classification_report, r
 
 
 def process_file(args, idx, file, processed_dir, pre_transform):
+    type_family = '/'.join(file.split('/')[-3:-1]) + '/'
+    file = file.replace(type_family, '')
     # print("before  ", file)
     if args['directed_graph']:
         graph = nx.read_edgelist(file, create_using=nx.DiGraph)
