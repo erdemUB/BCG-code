@@ -7,7 +7,7 @@ Code repository of the paper titled "Better Call Graphs: A New Dataset of Functi
 Contains source code to reproduce the results of LDP and APK features 
 * **main.py**: program to produce the LDP and APK feature results.
 * **dataset.py**: contains the function to create in memory dataset.
-* **apk_feature**: contains both original APK information and graph information of each APK. APK feature information are splited into train, test, and validation for both unique and duplicate datasets. Please download the original BCG apk information json file from here: https://iclr.me/download_page.html.
+* **apk_feature**: contains both original APK information and graph information of each APK. APK feature information are splited into train, test, and validation for both unique and duplicate datasets. Please download the original BCG apk information json file from here: https://erdemub.github.io/BCG-dataset/#Download.
 * **processed_data**: contains in memory dataset.
 
 
@@ -15,7 +15,7 @@ Contains source code to reproduce the results of LDP and APK features
 Contains source code to reproduce the results of GNN methods (GCN, GIN, and GraphSAGE). Note that, we utilize the code from Malnet paper and adapted to our experimental setup.
 
 ### datasets: 
-It should contain the dataset. Please download the FCG dataset and APk features files from this link: https://iclr.me/. 
+It should contain the dataset. Please download the FCG dataset and APk features files from this link: https://erdemub.github.io/BCG-dataset/.
 
 ### results:
 Executing the code will create a new file contaning the detail results inside results folder for the given experiment and dataset type.
