@@ -5,6 +5,17 @@ from torch_geometric.nn import GCNConv, SAGEConv, SGConv, GINConv, global_add_po
 
 
 class GIN(torch.nn.Module):
+    """
+    Graph Isomorphism Network (GIN) model for graph classification.
+
+    args: Dictionary containing model hyperparameters:
+        - num_layers: Number of GIN layers.
+        - num_features: Dimensionality of input node features.
+        - hidden_dim: Dimensionality of hidden layers.
+        - num_classes: Number of output classes for classification.
+        - dropout: Dropout rate for regularization.
+    """
+
     def __init__(self, args):
         super(GIN, self).__init__()
         self.args = args
@@ -34,6 +45,16 @@ class GIN(torch.nn.Module):
 
 
 class MLP(torch.nn.Module):
+    """
+    Multi-layer Perceptron (MLP) model for graph classification.
+
+    args: Dictionary containing model hyperparameters:
+        - num_layers: Number of hidden layers.
+        - num_features: Dimensionality of input node features.
+        - hidden_dim: Dimensionality of hidden layers.
+        - num_classes: Number of output classes for classification.
+        - dropout: Dropout rate for regularization.
+    """
     def __init__(self, args):
         super(MLP, self).__init__()
         self.args = args
@@ -60,6 +81,17 @@ class MLP(torch.nn.Module):
 
 
 class GraphSAGE(torch.nn.Module):
+    """
+    GraphSAGE for graph classification
+
+     args: Dictionary containing model hyperparameters:
+        - num_layers: Number of GIN layers.
+        - num_features: Dimensionality of input node features.
+        - hidden_dim: Dimensionality of hidden layers.
+        - num_classes: Number of output classes for classification.
+        - dropout: Dropout rate for regularization.
+    """
+
     def __init__(self, args):
         super().__init__()
         self.args = args
@@ -93,6 +125,17 @@ class GraphSAGE(torch.nn.Module):
 
 
 class GCN(torch.nn.Module):
+    """
+    Graph Convolution Network (GCN) for graph classification.
+
+    args: Dictionary containing model hyperparameters:
+        - num_layers: Number of GCN layers.
+        - num_features: Dimensionality of input node features.
+        - hidden_dim: Dimensionality of hidden layers.
+        - num_classes: Number of output classes for classification.
+        - dropout: Dropout rate for regularization.
+    """
+    
     def __init__(self, args):
         super(GCN, self).__init__()
         self.args = args

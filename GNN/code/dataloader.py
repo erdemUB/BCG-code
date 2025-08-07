@@ -6,11 +6,25 @@ from torch_geometric.data import Dataset
 
 
 class MalnetDataset(Dataset):
-    def __init__(self, args, root, files, labels, transform=None, pre_transform=None):
+    """
+    Custom Dataset class for loading graph data from .pt files.
+    """
+
+    def __init__(self, args, root, files, labels, transform=None, pre_transform=None, sha_dict=None):
+        """
+        args: command line arguments
+        root: root directory where the dataset is stored
+        files: list of .pt files containing graph data
+        labels: list of labels corresponding to each graph
+        sha_dict: dictionary mapping indices to SHA identifiers for the files
+        transform: optional transform to be applied on a sample
+        """
+
         self.args = args
         self.files = files
         self.labels = labels
         self.num_labels = len(np.unique(self.labels))
+        self.sha_dict = sha_dict
 
         super(MalnetDataset, self).__init__(root, transform, pre_transform)
 
@@ -29,7 +43,8 @@ class MalnetDataset(Dataset):
         return len(self.files)
 
     def __getitem__(self, idx):
-        x = torch.load(self.processed_dir.replace('/processed', '') + '/data_{}.pt'.format(idx))
+        sha_id = self.sha_dict[idx]
+        x = torch.load(self.processed_dir.replace('/processed', '') + '/data_{}.pt'.format(sha_id))
         x.y = self.labels[idx]
 
         return x

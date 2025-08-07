@@ -12,9 +12,22 @@ from sklearn.metrics import confusion_matrix, f1_score, classification_report, r
 
 
 def process_file(args, idx, file, processed_dir, pre_transform):
+    """
+    process a single file and save to processed_dir in pytorch geometric format
+
+    :param args: arguments
+    :param file: path to the file
+    :param processed_dir: directory to save the processed file
+    :param pre_transform: pre_transform function
+    :return: None
+    """
+
     type_family = '/'.join(file.split('/')[-3:-1]) + '/'
     file = file.replace(type_family, '')
-    # print("before  ", file)
+    sha_id = file.split("/")[-1].split(".")[0]
+
+    save_path = processed_dir + 'data_{}.pt'.format(sha_id)
+
     if args['directed_graph']:
         graph = nx.read_edgelist(file, create_using=nx.DiGraph)
     else:
@@ -37,25 +50,45 @@ def process_file(args, idx, file, processed_dir, pre_transform):
     if pre_transform is not None:
         data = pre_transform(data)
 
-    # print("before save")
-    torch.save(data, processed_dir + 'data_{}.pt'.format(idx))
+
+    torch.save(data, save_path)
 
 
 def convert_files_pytorch(args, files, processed_dir, pre_transform):
+    """
+    convert a list of files to pytorch geometric format and save to processed_dir
+
+    :param args: arguments
+    :param files: list of file paths
+    :param processed_dir: directory to save the processed files
+    :param pre_transform: pre_transform function
+    :return: None
+    """
+
     # print(len(files))
     # check if processed files exist
-    if len(glob(processed_dir + '*.pt')) != len(files):
+    # if len(glob(processed_dir + '*.pt')) != len(files):
         # print("qwdwq     ", processed_dir)
-        os.makedirs(processed_dir, exist_ok=True)
+    os.makedirs(processed_dir, exist_ok=True)
 
-        # print("wefwef   ", args['n_cores'])
-        for idx, file in enumerate(tqdm(files)):
-            process_file(args, idx, file, processed_dir, pre_transform)
+    # print("wefwef   ", args['n_cores'])
+    sha_dict = {}
+    for idx, file in enumerate(tqdm(files)):
+        sha_id = file.split("/")[-1].split(".")[0]
+        sha_dict[idx] = sha_id
+        # print("before processing file: ", idx, sha_id, file)
+        save_path = processed_dir + 'data_{}.pt'.format(sha_id)
+        # print("before save ", save_path)
+        if os.path.exists(save_path):
+            # print("Continue: ", idx)
+            continue
+        process_file(args, idx, file, processed_dir, pre_transform)
+    return sha_dict
 
 
-        # Parallel(n_jobs=args['n_cores'])(
-        #     delayed(process_file)(args, idx, file, processed_dir, pre_transform)
-        #     for idx, file in enumerate(tqdm(files)))
+    # Parallel(n_jobs=args['n_cores'])(
+    #     delayed(process_file)(args, idx, file, processed_dir, pre_transform)
+    #     for idx, file in enumerate(tqdm(files)))
 
 
 class NodeDegree(object):
@@ -76,6 +109,10 @@ def save_model(args, model):
 
 
 def log_info(args, epoch, y_true, y_pred, y_scores, param_count, run_time, data_type='val'):
+    """
+    log the evaluation results to a text file
+    """
+
     macro_f1 = round(f1_score(y_true, y_pred, average='macro'), 3)
     report = classification_report(y_true, y_pred, labels=args['class_indexes'], target_names=args['class_labels'], output_dict=True)
     # roc_auc = round(roc_auc_score(y_true, y_pred, average="macro",multi_class='ovr'), 3)

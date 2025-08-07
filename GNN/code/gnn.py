@@ -5,6 +5,9 @@ import time
 import torch
 import numpy as np
 import random
+
+from pathlib import Path
+
 np.set_printoptions(threshold=sys.maxsize)
 import torch.nn.functional as F
 import torch_geometric.transforms as T
@@ -24,6 +27,10 @@ from process import NodeDegree, save_model, log_info, convert_files_pytorch
 import numpy as np
 
 def seed_everything(seed=1):
+  """
+  Set random seed for reproducibility.
+  """
+
   random.seed(seed)
   os.environ['PYTHONHASHSEED'] = str(seed)
   np.random.seed(seed)
@@ -53,6 +60,18 @@ def get_parameter_count(model):
 
 
 def train(model, device, optimizer, train_loader, train_dataset, epoch):
+    """
+    Train the model for one epoch.
+
+    Parameters: model: The GNN model to be trained.
+                device (torch.device): The device to run the training on (CPU or GPU).
+                optimizer (torch.optim.Optimizer): The optimizer for updating model parameters.
+                train_loader (DataLoader): DataLoader for the training dataset.
+                train_dataset (Dataset): The training dataset.
+                epoch (int): Current epoch number.
+    Returns: float: Average training loss for the epoch.
+    """
+
     model.train()
 
     loss_all = 0
@@ -60,6 +79,12 @@ def train(model, device, optimizer, train_loader, train_dataset, epoch):
         data = data.to(device)
         optimizer.zero_grad()
         output = model(data.x, data.edge_index, data.batch)
+        if (data.y < 0).any() or (data.y >= output.shape[1]).any():
+            print(f"Labels (data.y): {data.y}")
+            print(f"Label min: {data.y.min().item()}, max: {data.y.max().item()}")
+            print(f"Expected label range: [0, {output.shape[1] - 1}]")
+            raise ValueError("Found invalid target label during training.")
+
         loss = F.cross_entropy(output, data.y)
         loss.backward()
         loss_all += loss.item() * data.num_graphs
@@ -69,6 +94,14 @@ def train(model, device, optimizer, train_loader, train_dataset, epoch):
 
 
 def test(model, device, loader):
+    """
+    Evaluate the model on the given dataset loader.
+    Parameters: model: The GNN model to be evaluated.
+                device (torch.device): The device to run the evaluation on (CPU or GPU).
+                loader (DataLoader): DataLoader for the dataset to evaluate.
+    Returns: Tuple[List[int], List[float], List[int]]: Predicted labels, prediction scores, and true labels.
+    """
+
     model.eval()
 
     y_true, y_pred, y_scores = [], [], []
@@ -85,6 +118,18 @@ def test(model, device, loader):
 
 
 def train_model(args, device, train_dataset, train_loader, val_loader, test_loader):
+    """
+    Train the model and evaluate on validation and test sets.
+
+    Parameters: args (dict): Dictionary of hyperparameters and configurations.
+                device (torch.device): The device to run the training on (CPU or GPU).
+                train_dataset (Dataset): The training dataset.
+                train_loader (DataLoader): DataLoader for the training dataset.
+                val_loader (DataLoader): DataLoader for the validation dataset.
+                test_loader (DataLoader): DataLoader for the test dataset.
+    Returns: model: The trained GNN model.
+    """
+
     model = gnn_models[args['model']](args).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args['lr'])
     # writer = SummaryWriter(log_dir=args['log_dir'])
@@ -112,6 +157,7 @@ def train_model(args, device, train_dataset, train_loader, val_loader, test_load
             f.write('Tiny={}, group={}, train_ratio={} Epoch={}, time={} seconds, model={}, # parameters={}, layers={}, hidden_dims={}, learning_rate={}, dropout={}, train_loss={}, val_{}={}, test_{}={}\n'.format(
                 args['malnet_tiny'], args['group'], args['train_ratio'], epoch, round(end-start, 2), args['model'], get_parameter_count(model), args['num_layers'], args['hidden_dim'], args['lr'], args['dropout'], train_loss, args['metric'], val_score, args['metric'], test_score))
 
+
         if not args['quiet']: print('Epoch: {:03d}, Train Loss: {:.7f}, Val {}: {:.7f}'.format(epoch, train_loss, args['metric'], val_score))
 
         if val_score > best_val_score:
@@ -132,6 +178,20 @@ def train_model(args, device, train_dataset, train_loader, val_loader, test_load
 
 
 def run_experiment(args_og):
+    """
+    Run experiments for a given set of hyperparameters and configurations.
+
+    Parameters: args_og (dict): Dictionary of hyperparameters and configurations.
+    1. Set random seed for reproducibility.
+    2. Prepare dataset paths based on the data type and other configurations.
+    3. Load and preprocess the dataset.
+    4. Create DataLoader for training, validation, and test sets.
+    5. Initialize and train the GNN model.
+    6. Evaluate the model on validation and test sets.
+
+    Returns: Tuple[float, float, int, float]: Validation score, test score, number of parameters, and runtime.
+    """
+
     args = copy.deepcopy(args_og)
     seed_everything(args['seed'])
 
@@ -145,10 +205,13 @@ def run_experiment(args_og):
         else:
             args['data_dir'] = graph_dir + '/tiny/malnet-graphs-tiny/'
             processed_dir = graph_dir + "/tiny/tiny_processed/"
-
     elif args['data_type'] == 'BCG':
-        args['data_dir'] = graph_dir + '//BCG/BCG_graphs/'
-        processed_dir = graph_dir + "/BCG/BCG_processed/"
+        args['data_dir'] = graph_dir + '/BCG_hashed_FCGs/'
+        processed_dir = graph_dir + "/BCG_processed/"
+        if args['group'] == 'family':
+            processed_dir = graph_dir + "/BCG_processed_family/"
+        #     args['batch_size'] = 2
+
     elif args['data_type'] == 'Maldroid':
         if args['rem_dup']:
             args['data_dir'] = graph_dir + '/Maldroid/Maldroid_graphs_unique/'
@@ -174,14 +237,23 @@ def run_experiment(args_og):
     #                                  '/remove_isolates={}/lcc_only={}/add_self_loops={}/'.format(args['malnet_tiny'], args['group'],
     #                                                     args['train_ratio'], args['node_feature'], args['directed_graph'],
     #                                                     args['remove_isolates'], args['lcc_only'], args['add_self_loops'])
-    #
 
-    rt_res_dir = '/results/'
+    rt_res_dir = '../../results/'
     if args['group'] == 'family':
-        rt_res_dir = '/results_fam/'
+        rt_res_dir = '../../results/family/'
 
-    args['log_dir'] = os.getcwd() + rt_res_dir + '{}_model={}_BS={}_UNQ={}_EP={}/SD={}/'.format(args['data_type'], args['model'],
-                                                          args['batch_size'],  args['rem_dup'], args['epochs'], args['seed'])
+    # Build subdir name
+    sub_dir = '{}_model={}_BS={}_UNQ={}_EP={}/SD={}/'.format(
+        args['data_type'], args['model'], args['batch_size'],
+        args['rem_dup'], args['epochs'], args['seed']
+    )
+
+    # Join safely using os.path
+    args['log_dir'] = os.path.join(os.getcwd(), rt_res_dir, sub_dir)
+
+    # args['log_dir'] = os.getcwd() + rt_res_dir + '{}_model={}_BS={}_UNQ={}_EP={}/SD={}/'.format(args['data_type'], args['model'],
+    #                                                                                             args['batch_size'], args['rem_dup'], args['epochs'],
+    #                                                                                             args['seed'])
 
     # args['log_dir'] = os.getcwd() + '/tmp/'
     os.makedirs((args['log_dir']), exist_ok=True)
@@ -193,23 +265,27 @@ def run_experiment(args_og):
     # test_dir = args['data_dir'].replace('/data/', '/data/test/').replace('/train_ratio={}'.format(args['train_ratio']), '/train_ratio=1.0')
 
     files_train, files_val, files_test, train_labels, val_labels, test_labels, label_dict = get_split_info(args)
-    print("Train dir ==   ", train_dir)
+    print("Split info done and Train dir ==   ", train_dir)
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n")
 
-    convert_files_pytorch(args, files_train, train_dir, node_features[args['node_feature']])
-    convert_files_pytorch(args, files_val, val_dir, node_features[args['node_feature']])
-    convert_files_pytorch(args, files_test, test_dir, node_features[args['node_feature']])
-
-    # files_train = files_train[:100]
-
-    print("converting done  and train size", len(files_train))
-    print("len   ",len(np.unique(train_labels)))
+    sha_dict_train = convert_files_pytorch(args, files_train, train_dir, node_features[args['node_feature']])
+    sha_dict_val = convert_files_pytorch(args, files_val, val_dir, node_features[args['node_feature']])
+    sha_dict_test = convert_files_pytorch(args, files_test, test_dir, node_features[args['node_feature']])
 
 
-    train_dataset = MalnetDataset(args, root=train_dir, files=files_train, labels=train_labels)
-    val_dataset = MalnetDataset(args, root=val_dir, files=files_val, labels=val_labels)
-    test_dataset = MalnetDataset(args, root=test_dir, files=files_test, labels=test_labels)
+    print("converting to pytorch done and train size", len(files_train))
+    print("Unique class/family length   ",len(np.unique(train_labels)))
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n")
+
+    train_dataset = MalnetDataset(args, root=train_dir, files=files_train, labels=train_labels, sha_dict=sha_dict_train)
+    val_dataset = MalnetDataset(args, root=val_dir, files=files_val, labels=val_labels, sha_dict=sha_dict_val)
+    test_dataset = MalnetDataset(args, root=test_dir, files=files_test, labels=test_labels, sha_dict=sha_dict_test)
 
     print("dataset creation done and batch size = ", args['batch_size'], len(train_dataset), len(val_dataset), len(test_dataset))
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n")
 
     train_loader = DataLoader(train_dataset, batch_size=args['batch_size'], shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=args['batch_size'])
@@ -217,13 +293,14 @@ def run_experiment(args_og):
 
     # train_loader = train_loader[:2]
 
-
     print("Dataloader done  ", len(train_loader))
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n")
 
-    args['num_classes'] = train_dataset.num_labels
-    if args['group'] == 'family' and args['data_type'] == 'BCG':
-        args['num_classes'] = 124
-        print("Manually fixed number of classes")
+    args['num_classes'] = len(label_dict)
+    # if args['group'] == 'family' and args['data_type'] == 'BCG':
+    #     args['num_classes'] = 124
+    #     print("Manually fixed number of classes")
     args['num_features'] = train_dataset.num_features
     args['class_indexes'] = list(label_dict.values())
     args['class_labels'] = list(label_dict.keys())
@@ -236,6 +313,8 @@ def run_experiment(args_og):
     run_time = round(time.time() - start, 2)
 
     print("Model training done")
+    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n")
 
     param_count = get_parameter_count(model)
 
@@ -250,6 +329,10 @@ def run_experiment(args_og):
 
 
 def main():
+    """
+    Main function to run experiments in parallel.
+    """
+
     from config import args
 
     gpus = [0]

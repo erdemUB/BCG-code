@@ -6,6 +6,23 @@ import torch
 import argparse
 
 def model_search(gpu, malnet_tiny, group, metric, epochs, model, K, num_layers, hidden_dim, lr, dropout, train_ratio):
+    """
+    Search for the best model with given hyperparameters.
+
+    :param gpu: GPU id
+    :param malnet_tiny: Boolean indicating whether to use the tiny version of the dataset
+    :param group: Grouping method ('type' or 'family')
+    :param metric: Evaluation metric
+    :param epochs: Number of training epochs
+    :param model: Model name ('gcn', 'graphsage', 'gin', 'sgc', 'mlp')
+    :param num_layers: Number of layers in the model
+    :param hidden_dim: Dimension of hidden layers
+    :param lr: Learning rate
+    :param dropout: Dropout rate
+    :param train_ratio: Ratio of training data
+    :return: Tuple of (args, val_score, test_score, param_count, run_time)
+    """
+
     from config import args
 
     print(parser)
@@ -82,6 +99,16 @@ def preprocess_search(gpu, epochs, node_feature, directed_graph, remove_isolates
 
 
 def search_all_preprocess():
+    """
+    All preprocessing options to be tested:
+
+    - Node features: 'ldp', 'constant', 'degree'
+    - Directed graph: True, False
+    - Remove isolates: True, False
+    - Largest connected component only: True, False
+    - Add self-loops: True, False
+    """
+
     epochs = 1000
     gpus = [0, 1, 2, 3, 4, 5, 6, 7]
 
@@ -112,6 +139,7 @@ def search_all_preprocess():
 
 
 def search_all_models(parser):
+
     gpus = [2]
 
     models = ['gin']
@@ -158,6 +186,10 @@ def search_all_models(parser):
 
 
 def run_best_models():
+    """
+    Run the best models found from the search_all_models function.
+    """
+
     epochs = 500
     gpus = [2, 3, 4, 5]
     metric = 'macro-F1'
